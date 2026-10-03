@@ -1,0 +1,685 @@
+/* ==========================================================================
+   SEO META PREVIEWER — DESIGN SYSTEM & COMPONENT STYLES
+   Features: Glassmorphism, Container Queries, :has() Parent Highlighting,
+             Dark Mode Toggle, Pixel-Accurate Google SERP Tokens
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. Design Tokens & Theme Variables
+   -------------------------------------------------------------------------- */
+:root {
+  color-scheme: light;
+
+  /* Google Brand Colors */
+  --google-blue: #1a0dab;
+  --google-blue-hover: #170bb5;
+  --google-text: #202124;
+  --google-muted: #4d5156;
+  --google-green: #34a853;
+  --google-amber: #fbbc04;
+  --google-amber-text: #b06000;
+  --google-red: #d93025;
+  --google-red-bg: rgba(217, 48, 37, 0.06);
+  --google-red-border: rgba(217, 48, 37, 0.35);
+
+  /* Light Theme Interface Tokens (Glassmorphic) */
+  --bg-app: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+  --bg-panel: rgba(255, 255, 255, 0.72);
+  --bg-panel-border: rgba(255, 255, 255, 0.6);
+  --panel-blur: blur(14px);
+  --text-main: #1e293b;
+  --text-secondary: #64748b;
+  --panel-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.06), 0 4px 10px -2px rgba(0, 0, 0, 0.04);
+  --input-bg: rgba(255, 255, 255, 0.9);
+  --input-border: #cbd5e1;
+  --input-focus: #3b82f6;
+  --track-bg: #e2e8f0;
+  --btn-toggle-bg: rgba(241, 245, 249, 0.85);
+  --btn-toggle-active-bg: #ffffff;
+  --btn-toggle-active-color: #1e293b;
+  --btn-toggle-active-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Dark Theme Overrides for App Interface */
+body.dark {
+  color-scheme: dark;
+
+  --bg-app: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
+  --bg-panel: rgba(30, 41, 59, 0.7);
+  --bg-panel-border: rgba(255, 255, 255, 0.1);
+  --panel-blur: blur(16px);
+  --text-main: #f8fafc;
+  --text-secondary: #94a3b8;
+  --panel-shadow: 0 16px 40px -8px rgba(0, 0, 0, 0.4), 0 4px 12px -2px rgba(0, 0, 0, 0.3);
+  --input-bg: rgba(15, 23, 42, 0.75);
+  --input-border: #334155;
+  --input-focus: #60a5fa;
+  --track-bg: #334155;
+  --btn-toggle-bg: rgba(15, 23, 42, 0.6);
+  --btn-toggle-active-bg: #334155;
+  --btn-toggle-active-color: #f8fafc;
+  --btn-toggle-active-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --google-green: #4ade80;
+  --google-amber: #f59e0b;
+  --google-amber-text: #fbbf24;
+  --google-red-bg: rgba(217, 48, 37, 0.15);
+  --google-red-border: rgba(239, 68, 68, 0.5);
+}
+
+/* Graceful fallback when backdrop-filter is unsupported */
+@supports not (backdrop-filter: blur(14px)) {
+  :root {
+    --bg-panel: rgba(255, 255, 255, 0.96);
+  }
+  body.dark {
+    --bg-panel: rgba(30, 41, 59, 0.96);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   2. Base & Layout
+   -------------------------------------------------------------------------- */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  background: var(--bg-app);
+  color: var(--text-main);
+  min-height: 100vh;
+  line-height: 1.5;
+  transition: background 0.3s ease, color 0.3s ease;
+  padding: 24px 16px;
+}
+
+.app-wrapper {
+  max-width: 1320px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Header */
+.app-header {
+  border-radius: 16px;
+  background: var(--bg-panel);
+  border: 1px solid var(--bg-panel-border);
+  backdrop-filter: var(--panel-blur);
+  -webkit-backdrop-filter: var(--panel-blur);
+  box-shadow: var(--panel-shadow);
+  padding: 16px 24px;
+  transition: all 0.3s ease;
+}
+
+.header-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.brand-group {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.brand-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.brand-title {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text-main);
+}
+
+.brand-subtitle {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+/* Theme Toggle Button */
+.theme-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 20px;
+  border: 1px solid var(--input-border);
+  background: var(--btn-toggle-bg);
+  color: var(--text-main);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.theme-toggle-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.theme-toggle-btn .dark-icon {
+  display: none;
+}
+
+body.dark .theme-toggle-btn .light-icon {
+  display: none;
+}
+
+body.dark .theme-toggle-btn .dark-icon {
+  display: inline;
+}
+
+/* Main Grid Layout */
+.app-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+@media (max-width: 980px) {
+  .app-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   3. Glassmorphism Configuration Panels
+   -------------------------------------------------------------------------- */
+.controls-panel,
+.preview-panel {
+  background: var(--bg-panel);
+  border: 1px solid var(--bg-panel-border);
+  border-radius: 20px;
+  backdrop-filter: var(--panel-blur);
+  -webkit-backdrop-filter: var(--panel-blur);
+  box-shadow: var(--panel-shadow);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  transition: all 0.3s ease;
+}
+
+.panel-heading {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--text-main);
+}
+
+/* Form Groups & Parent Validation Highlighting via :has() */
+.snippet-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.4);
+  border: 1px solid transparent;
+  transition: border-color 0.25s ease, background-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+body.dark .form-group {
+  background: rgba(15, 23, 42, 0.4);
+}
+
+/* ==========================================================================
+   REQUIREMENT R3: Parent Validation Highlighting via CSS :has()
+   Highlights the entire input group with red border, background tint & ring
+   when the child title exceeds 600px (causing .error / .truncated classes)
+   ========================================================================== */
+.form-group:has(#input-title.error),
+.form-group:has(#input-description.error),
+.form-group:has(#title-counter.error),
+.form-group:has(#title-counter.truncated),
+.form-group:has(#desc-counter.error),
+.form-group:has(#desc-counter.truncated),
+.form-group:has(#title-progress.error),
+.form-group:has(#title-progress.truncated),
+.form-group:has(#desc-progress.error),
+.form-group:has(#desc-progress.truncated),
+.form-group:has(input.error),
+.form-group:has(textarea.error),
+.form-group:has(.counter-badge.error),
+.form-group:has(.counter-badge.truncated),
+.form-group:has(.progress-bar.error),
+.form-group:has(.progress-bar.truncated),
+.form-group:has(.error),
+.form-group:has(.truncated),
+.form-group:has([aria-invalid="true"]) {
+  border-color: var(--google-red, #d93025);
+  background-color: var(--google-red-bg);
+  box-shadow: 0 0 0 3px rgba(217, 48, 37, 0.16);
+}
+
+body.dark .form-group:has(#input-title.error),
+body.dark .form-group:has(#input-description.error),
+body.dark .form-group:has(#title-counter.error),
+body.dark .form-group:has(#title-counter.truncated),
+body.dark .form-group:has(#desc-counter.error),
+body.dark .form-group:has(#desc-counter.truncated),
+body.dark .form-group:has(#title-progress.error),
+body.dark .form-group:has(#title-progress.truncated),
+body.dark .form-group:has(#desc-progress.error),
+body.dark .form-group:has(#desc-progress.truncated),
+body.dark .form-group:has(input.error),
+body.dark .form-group:has(textarea.error),
+body.dark .form-group:has(.counter-badge.error),
+body.dark .form-group:has(.counter-badge.truncated),
+body.dark .form-group:has(.progress-bar.error),
+body.dark .form-group:has(.progress-bar.truncated),
+body.dark .form-group:has(.error),
+body.dark .form-group:has(.truncated),
+body.dark .form-group:has([aria-invalid="true"]) {
+  border-color: #ef4444;
+  background-color: rgba(239, 68, 68, 0.12);
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.25);
+}
+
+.label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+/* Counters & Badges */
+.counter-badge {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: var(--track-bg);
+  color: var(--text-secondary);
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.counter-badge.safe {
+  color: var(--google-green);
+}
+
+.counter-badge.warning {
+  color: var(--google-amber-text);
+  background: rgba(251, 188, 4, 0.15);
+}
+
+/* Error / Truncated State: Strict Google Red (#d93025) */
+.counter-badge.error,
+.counter-badge.truncated,
+#title-counter.error,
+#title-counter.truncated,
+#desc-counter.error,
+#desc-counter.truncated {
+  color: var(--google-red, #d93025) !important;
+  background-color: var(--google-red-bg);
+  border: 1px solid var(--google-red-border);
+  font-weight: 700;
+}
+
+/* Inputs */
+.input-wrapper input,
+.input-wrapper textarea {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--input-border);
+  background: var(--input-bg);
+  color: var(--text-main);
+  font-size: 14px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.input-wrapper input::placeholder,
+.input-wrapper textarea::placeholder {
+  color: var(--text-secondary);
+  opacity: 0.85;
+}
+
+.input-wrapper input:focus,
+.input-wrapper textarea:focus {
+  border-color: var(--input-focus);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.18);
+}
+
+.input-wrapper input.error,
+.input-wrapper textarea.error {
+  border-color: var(--google-red, #d93025);
+  box-shadow: 0 0 0 3px rgba(217, 48, 37, 0.16);
+}
+
+.input-wrapper input.error:focus,
+.input-wrapper textarea.error:focus {
+  border-color: var(--google-red, #d93025);
+  box-shadow: 0 0 0 3px rgba(217, 48, 37, 0.28);
+}
+
+body.dark .input-wrapper input.error,
+body.dark .input-wrapper textarea.error {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2);
+}
+
+body.dark .input-wrapper input.error:focus,
+body.dark .input-wrapper textarea.error:focus {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.35);
+}
+
+.field-hint {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+/* Progress Bars */
+.progress-track {
+  width: 100%;
+  height: 6px;
+  background: var(--track-bg);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--google-green);
+  transition: width 0.15s ease, background-color 0.2s ease;
+}
+
+.progress-bar.warning {
+  background: var(--google-amber);
+}
+
+.progress-bar.error,
+.progress-bar.truncated {
+  background: var(--google-red, #d93025) !important;
+}
+
+/* --------------------------------------------------------------------------
+   4. Preview Panel Header & Device Toggles
+   -------------------------------------------------------------------------- */
+.preview-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.device-toggle {
+  display: inline-flex;
+  padding: 4px;
+  background: var(--btn-toggle-bg);
+  border: 1px solid var(--input-border);
+  border-radius: 12px;
+  gap: 4px;
+}
+
+.toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.toggle-btn.active {
+  background: var(--btn-toggle-active-bg);
+  color: var(--btn-toggle-active-color);
+  box-shadow: var(--btn-toggle-active-shadow);
+}
+
+/* --------------------------------------------------------------------------
+   5. Google SERP Card Base Styling
+   ==========================================================================
+   CRITICAL REQUIREMENT R1: The Google SERP preview card MUST REMAIN LIGHT
+   in both light and dark themes to reflect an authentic Google Search!
+   -------------------------------------------------------------------------- */
+.serp-card,
+#serp-preview,
+body.dark .serp-card,
+body.dark #serp-preview {
+  color-scheme: light !important;
+  background-color: #ffffff !important;
+  color: #202124 !important;
+  border-radius: 8px;
+  padding: 16px 20px;
+  font-family: Arial, sans-serif;
+  text-align: left;
+  box-shadow: 0 1px 6px rgba(32, 33, 36, 0.12), 0 1px 1px rgba(0, 0, 0, 0.04);
+  transition: all 0.25s ease;
+}
+
+/* Desktop Mode SERP Card Base */
+.serp-card.mode-desktop,
+#serp-preview.mode-desktop {
+  width: 100%;
+  max-width: 652px;
+  border: 1px solid #dfe1e5;
+  border-radius: 8px;
+}
+
+/* Mobile Mode SERP Card (Strict 375px Emulated Viewport) */
+.serp-card.mode-mobile,
+#serp-preview.mode-mobile {
+  width: min(375px, 100%);
+  max-width: min(375px, 100%);
+  margin: 0 auto;
+  border: 1px solid #dadce0;
+  border-radius: 16px;
+  box-shadow: 0 1px 6px rgba(32, 33, 36, 0.16);
+  padding: 14px 16px;
+}
+
+/* SERP Header Row: Favicon + Site Name + Breadcrumb */
+.serp-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.serp-favicon {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #f1f3f4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.serp-site-info {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.3;
+  overflow: hidden;
+}
+
+.serp-site-name,
+#preview-site-name,
+body.dark #preview-site-name {
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  color: #202124 !important;
+}
+
+.serp-breadcrumb,
+#preview-breadcrumb,
+body.dark #preview-breadcrumb {
+  font-size: 12px !important;
+  color: #4d5156 !important;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* SERP Title Heading & Anchor */
+.serp-title {
+  margin: 0 0 6px 0;
+  font-weight: 400;
+}
+
+.serp-title a,
+#preview-title,
+body.dark #preview-title {
+  font-family: 'Google Sans', Roboto, Arial, sans-serif !important;
+  font-size: 20px !important;
+  line-height: 26px !important;
+  color: #1a0dab !important;
+  text-decoration: none;
+  cursor: pointer;
+  display: inline-block;
+  max-width: 600px;
+  word-break: break-word;
+}
+
+.serp-title a:hover {
+  text-decoration: underline !important;
+}
+
+.serp-title a:visited,
+#preview-title:visited,
+body.dark #preview-title:visited {
+  color: #1a0dab !important;
+}
+
+/* Mode-specific Title Wrapping */
+.serp-card.mode-desktop .serp-title a {
+  white-space: normal;
+}
+
+.serp-card.mode-mobile .serp-title a {
+  max-width: 100%;
+  white-space: normal;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* SERP Description Snippet */
+.serp-snippet,
+#preview-description,
+body.dark #preview-description {
+  font-size: 14px !important;
+  line-height: 20px !important;
+  color: #4d5156 !important;
+  margin: 0;
+  max-width: 600px;
+  word-break: break-word;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.serp-card.mode-mobile .serp-snippet {
+  -webkit-line-clamp: 3;
+}
+
+/* --------------------------------------------------------------------------
+   6. Container Queries Implementation for SERP Preview
+   ==========================================================================
+   REQUIREMENT R2: Replace old preview @media queries with @container queries
+   The preview container responds to container width rather than viewport.
+   Placed AFTER base SERP styles so container rules override base rules cleanly.
+   -------------------------------------------------------------------------- */
+.serp-viewport {
+  container-type: inline-size;
+  container-name: serp-viewport;
+  display: flex;
+  justify-content: flex-start;
+  width: 100%;
+  overflow-x: auto;
+  padding: 8px 0;
+}
+
+/* Container Queries for Responsive Layout of the Preview Card */
+@container serp-viewport (max-width: 680px) {
+  .serp-card.mode-desktop,
+  #serp-preview.mode-desktop {
+    max-width: 100%;
+  }
+}
+
+@container serp-viewport (max-width: 480px) {
+  .serp-card.mode-desktop,
+  #serp-preview.mode-desktop {
+    max-width: 100%;
+    padding: 12px 14px;
+  }
+  .serp-card .serp-title a,
+  .serp-card #preview-title,
+  #serp-preview #preview-title,
+  body.dark .serp-card #preview-title,
+  body.dark #serp-preview #preview-title {
+    font-size: 18px !important;
+    line-height: 24px !important;
+  }
+}
+
+@container serp-viewport (max-width: 380px) {
+  .serp-card.mode-mobile,
+  #serp-preview.mode-mobile {
+    width: 100%;
+    max-width: 100%;
+    padding: 12px 14px;
+  }
+}
+
+@container serp-viewport (min-width: 680px) {
+  .serp-card.mode-desktop,
+  #serp-preview.mode-desktop {
+    max-width: 652px;
+  }
+}
+
+/* Footer */
+.app-footer {
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-secondary);
+  padding: 8px 0;
+}

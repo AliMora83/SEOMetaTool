@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SEO Meta Previewer — Live Google SERP Snippet Simulator</title>
+  <meta name="description" content="Pixel-accurate Google SERP previewer tool calculating real title and meta description pixel truncation limits.">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-wrapper">
+    <header class="app-header">
+      <div class="header-container">
+        <div class="brand-group">
+          <div class="brand-logo" aria-hidden="true">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+          </div>
+          <div class="brand-text">
+            <h1 class="brand-title">SEO Meta Previewer</h1>
+            <p class="brand-subtitle">Real-Time Google SERP Pixel Truncation Simulator</p>
+          </div>
+        </div>
+        <div class="header-actions">
+          <button type="button" id="theme-toggle" class="theme-toggle-btn" aria-label="Switch to dark mode" title="Switch to dark mode" aria-pressed="false" data-theme="light">
+            <span class="theme-icon light-icon" aria-hidden="true">☀️</span>
+            <span class="theme-icon dark-icon" aria-hidden="true">🌙</span>
+            <span class="theme-label">Theme</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main class="app-layout">
+      <!-- Configuration Controls Panel (Glassmorphism) -->
+      <section class="controls-panel" aria-label="Snippet Configuration">
+        <h2 class="panel-heading">Snippet Settings</h2>
+
+        <form id="snippet-form" class="snippet-form" onsubmit="return false;">
+          <!-- Title Input Group with Parent Validation -->
+          <div class="form-group form-group-title" id="group-title">
+            <div class="label-row">
+              <label for="input-title">Page Title</label>
+              <span class="counter-badge safe" id="title-counter">0px / 600px (0 chars)</span>
+            </div>
+            <div class="input-wrapper">
+              <input type="text" id="input-title" placeholder="Enter page title..." autocomplete="off" aria-describedby="title-counter">
+            </div>
+            <div class="progress-track" aria-hidden="true">
+              <div class="progress-bar safe" id="title-progress" style="width: 0%;"></div>
+            </div>
+            <span class="field-hint">Google desktop titles truncate at approximately 600px.</span>
+          </div>
+
+          <!-- URL Input Group -->
+          <div class="form-group" id="group-url">
+            <div class="label-row">
+              <label for="input-url">Destination URL</label>
+            </div>
+            <div class="input-wrapper">
+              <input type="text" id="input-url" placeholder="https://example.com/page-slug" autocomplete="off">
+            </div>
+            <span class="field-hint">Formatted into Google breadcrumbs hierarchy.</span>
+          </div>
+
+          <!-- Description Input Group -->
+          <div class="form-group" id="group-description">
+            <div class="label-row">
+              <label for="input-description">Meta Description</label>
+              <span class="counter-badge safe" id="desc-counter">0px / 960px (0 chars)</span>
+            </div>
+            <div class="input-wrapper">
+              <textarea id="input-description" rows="4" placeholder="Enter meta description snippet..." aria-describedby="desc-counter"></textarea>
+            </div>
+            <div class="progress-track" aria-hidden="true">
+              <div class="progress-bar safe" id="desc-progress" style="width: 0%;"></div>
+            </div>
+            <span class="field-hint">Desktop snippets wrap to 2 lines (~960px).</span>
+          </div>
+        </form>
+      </section>
+
+      <!-- Preview Panel (Glassmorphism + Container Query Target) -->
+      <section class="preview-panel" aria-label="SERP Preview">
+        <div class="preview-header">
+          <h2 class="panel-heading">Google Search Preview</h2>
+          <div class="device-toggle" role="tablist" aria-label="Device layout switcher">
+            <button type="button" class="toggle-btn active" id="btn-desktop" data-mode="desktop" role="tab" aria-selected="true">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                <line x1="8" y1="21" x2="16" y2="21"></line>
+                <line x1="12" y1="17" x2="12" y2="21"></line>
+              </svg>
+              Desktop
+            </button>
+            <button type="button" class="toggle-btn" id="btn-mobile" data-mode="mobile" role="tab" aria-selected="false">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
+                <line x1="12" y1="18" x2="12.01" y2="18"></line>
+              </svg>
+              Mobile
+            </button>
+          </div>
+        </div>
+
+        <div class="serp-viewport" id="serp-viewport">
+          <!-- Google SERP Card (Must strictly remain light in both light and dark themes) -->
+          <article class="serp-card mode-desktop" id="serp-preview">
+            <div class="serp-header">
+              <div class="serp-favicon" id="preview-favicon" aria-hidden="true">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5f6368" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="2" y1="12" x2="22" y2="12"></line>
+                  <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                </svg>
+              </div>
+              <div class="serp-site-info">
+                <span class="serp-site-name" id="preview-site-name">example.com</span>
+                <span class="serp-breadcrumb" id="preview-breadcrumb">https://example.com</span>
+              </div>
+            </div>
+            <h3 class="serp-title">
+              <a href="#" id="preview-title" tabindex="-1">Page Title Preview</a>
+            </h3>
+            <p class="serp-snippet" id="preview-description">Meta description preview will appear here...</p>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <footer class="app-footer">
+      <p>SEO Meta Previewer • Vanilla HTML5, Modern CSS3 &amp; ES6+ JavaScript</p>
+    </footer>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
