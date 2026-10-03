@@ -7,7 +7,8 @@
   <meta name="description" content="Pixel-accurate Google SERP previewer tool calculating real title and meta description pixel truncation limits.">
   <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body class="dark">
+  <div class="mesh-gradient-bg" aria-hidden="true"></div>
   <div class="app-wrapper">
     <header class="app-header">
       <div class="header-container">
@@ -23,13 +24,6 @@
             <p class="brand-subtitle">Real-Time Google SERP Pixel Truncation Simulator</p>
           </div>
         </div>
-        <div class="header-actions">
-          <button type="button" id="theme-toggle" class="theme-toggle-btn" aria-label="Switch to dark mode" title="Switch to dark mode" aria-pressed="false" data-theme="light">
-            <span class="theme-icon light-icon" aria-hidden="true">☀️</span>
-            <span class="theme-icon dark-icon" aria-hidden="true">🌙</span>
-            <span class="theme-label">Theme</span>
-          </button>
-        </div>
       </div>
     </header>
 
@@ -43,7 +37,16 @@
           <div class="form-group form-group-title" id="group-title">
             <div class="label-row">
               <label for="input-title">Page Title</label>
-              <span class="counter-badge safe" id="title-counter">0px / 600px (0 chars)</span>
+              <div class="field-controls">
+                <button type="button" class="btn-copy" id="btn-copy-title" title="Copy Title" aria-label="Copy title to clipboard">
+                  <svg class="copy-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                  </svg>
+                  <span class="copy-label">Copy</span>
+                </button>
+                <span class="counter-badge safe" id="title-counter">0px / 600px (0 chars)</span>
+              </div>
             </div>
             <div class="input-wrapper">
               <input type="text" id="input-title" placeholder="Enter page title..." autocomplete="off" aria-describedby="title-counter">
@@ -69,7 +72,16 @@
           <div class="form-group" id="group-description">
             <div class="label-row">
               <label for="input-description">Meta Description</label>
-              <span class="counter-badge safe" id="desc-counter">0px / 960px (0 chars)</span>
+              <div class="field-controls">
+                <button type="button" class="btn-copy" id="btn-copy-desc" title="Copy Description" aria-label="Copy description to clipboard">
+                  <svg class="copy-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                  </svg>
+                  <span class="copy-label">Copy</span>
+                </button>
+                <span class="counter-badge safe" id="desc-counter">0px / 960px (0 chars)</span>
+              </div>
             </div>
             <div class="input-wrapper">
               <textarea id="input-description" rows="4" placeholder="Enter meta description snippet..." aria-describedby="desc-counter"></textarea>

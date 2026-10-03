@@ -54,7 +54,10 @@ check("No node_modules directory in SEOMetaTool",
 allowed_exts = {'.html', '.css', '.js', '.mjs', '.py', '.sh', '.md', '.svg', '.png', '.jpg'}
 non_static = []
 for root, dirs, files in os.walk(ROOT_DIR):
+    dirs[:] = [d for d in dirs if not d.startswith('.')]
     for f in files:
+        if f.startswith('.'):
+            continue
         _, ext = os.path.splitext(f)
         if ext.lower() not in allowed_exts:
             non_static.append(f)

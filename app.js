@@ -270,7 +270,7 @@
   };
 
   // ---------------------------------------------------------------------------
-  // 5. Dark / Light Mode Theme Manager (`ThemeManager`)
+  // 5. Permanent Dark Mode Theme Manager (`ThemeManager`)
   // ---------------------------------------------------------------------------
   const ThemeManager = {
     STORAGE_KEY: 'seo_preview_theme',
@@ -281,96 +281,224 @@
       if (this._initialized) return;
       this._initialized = true;
 
-      const saved = this.getSavedTheme();
-      let theme = 'light';
-      let persist = false;
-
-      if (saved === 'dark' || saved === 'light') {
-        theme = saved;
-      } else if (typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-        theme = 'dark';
-      }
-
-      this.applyTheme(theme, persist);
-
-      // Listen for system color scheme changes when no explicit stored preference
-      if (typeof window !== 'undefined' && window.matchMedia) {
-        const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-        if (mediaQuery) {
-          const colorChangeHandler = (e) => {
-            if (!this.getSavedTheme()) {
-              this.applyTheme(e.matches ? 'dark' : 'light', false);
-            }
-          };
-          if (typeof mediaQuery.addEventListener === 'function') {
-            mediaQuery.addEventListener('change', colorChangeHandler);
-          } else if (typeof mediaQuery.addListener === 'function') {
-            mediaQuery.addListener(colorChangeHandler);
-          }
-        }
-      }
-
-      const toggleBtn = document.getElementById('theme-toggle');
-      if (toggleBtn && typeof toggleBtn.addEventListener === 'function') {
-        toggleBtn.addEventListener('click', () => {
-          this.toggleTheme();
-        });
-      }
+      // Force dark mode permanently
+      this.applyTheme('dark');
     },
 
     getSavedTheme() {
+      return 'dark';
+    },
+
+    getCurrentTheme() {
+      return 'dark';
+    },
+
+    applyTheme(theme = 'dark') {
+      if (typeof document === 'undefined') return;
+      if (document.body && document.body.classList) {
+        document.body.classList.add('dark');
+        document.body.classList.remove('light');
+      }
       try {
         if (typeof localStorage !== 'undefined') {
-          const val = localStorage.getItem(this.STORAGE_KEY);
-          if (val === 'dark' || val === 'light') return val;
+          localStorage.setItem(this.STORAGE_KEY, 'dark');
         }
       } catch (e) {
         // Storage restricted
       }
-      return null;
-    },
-
-    getCurrentTheme() {
-      if (typeof document === 'undefined' || !document.body) return 'light';
-      return document.body.classList.contains('dark') ? 'dark' : 'light';
-    },
-
-    applyTheme(theme, persist = true) {
-      if (typeof document === 'undefined') return;
-
-      if (document.body) {
-        if (theme === 'dark') {
-          document.body.classList.add('dark');
-        } else {
-          document.body.classList.remove('dark');
-        }
-      }
-
-      if (persist) {
-        try {
-          if (typeof localStorage !== 'undefined') {
-            localStorage.setItem(this.STORAGE_KEY, theme);
-          }
-        } catch (e) {
-          // Storage restricted
-        }
-      }
-
-      const toggleBtn = document.getElementById('theme-toggle');
-      if (toggleBtn) {
-        safeSetAttribute(toggleBtn, 'data-theme', theme);
-        safeSetAttribute(toggleBtn, 'aria-pressed', theme === 'dark' ? 'true' : 'false');
-        const nextModeLabel = theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode';
-        safeSetAttribute(toggleBtn, 'aria-label', nextModeLabel);
-        toggleBtn.title = nextModeLabel;
-      }
     },
 
     toggleTheme() {
-      const current = this.getCurrentTheme();
-      const nextTheme = current === 'dark' ? 'light' : 'dark';
-      this.applyTheme(nextTheme, true);
-      return nextTheme;
+      // Permanent dark theme: retain dark mode
+      this.applyTheme('dark');
+      return 'dark';
+    }
+  };
+
+  // ---------------------------------------------------------------------------
+  // 5b. Copy to Clipboard Manager (`ClipboardManager`)
+  // ---------------------------------------------------------------------------
+  const ClipboardManager = {
+    async copy(text) {
+      const content = String(text ?? '');
+      if (typeof navigator !== 'undefined' && navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+        try {
+          await navigator.clipboard.writeText(content);
+          return true;
+        } catch (e) {
+          // Fallback below
+        }
+      }
+
+      if (typeof document !== 'undefined') {
+        let textarea = null;
+        try {
+          textarea = document.createElement('textarea');
+          textarea.value = content;
+          safeSetAttribute(textarea, 'readonly', '');
+          safeSetAttribute(textarea, 'tabindex', '-1');
+          safeSetAttribute(textarea, 'aria-hidden', 'true');
+          if (textarea.style) {
+            textarea.style.position = 'fixed';
+            textarea.style.top = '0';
+            textarea.style.left = '0';
+            textarea.style.width = '1px';
+            textarea.style.height = '1px';
+            textarea.style.padding = '0';
+            textarea.style.border = 'none';
+            textarea.style.outline = 'none';
+            textarea.style.boxShadow = 'none';
+            textarea.style.background = 'transparent';
+            textarea.style.opacity = '0';
+            textarea.style.fontSize = '16px'; // Prevent mobile iOS zoom
+          }
+
+          if (document.body && typeof document.body.appendChild === 'function') {
+            document.body.appendChild(textarea);
+            let success = false;
+            const previousActive = typeof document.activeElement !== 'undefined' ? document.activeElement : null;
+            try {
+              if (typeof textarea.select === 'function') textarea.select();
+              if (typeof textarea.setSelectionRange === 'function') {
+                textarea.setSelectionRange(0, textarea.value.length);
+              }
+              success = typeof document.execCommand === 'function' ? document.execCommand('copy') : false;
+            } finally {
+              if (typeof document.body.removeChild === 'function') {
+                try {
+                  document.body.removeChild(textarea);
+                } catch (e) {
+                  // Ignore removal error
+                }
+              }
+              if (previousActive && typeof previousActive.focus === 'function') {
+                try {
+                  previousActive.focus();
+                } catch (e) {
+                  // Ignore focus restoration error
+                }
+              }
+            }
+            return Boolean(success);
+          }
+        } catch (e) {
+          return false;
+        }
+      }
+      return false;
+    },
+
+    showFeedback(button, defaultText = 'Copy', success = true) {
+      if (!button) return;
+
+      // Clear pending timer on this button to avoid race conditions on consecutive clicks
+      if (button._feedbackTimer) {
+        clearTimeout(button._feedbackTimer);
+        button._feedbackTimer = null;
+      }
+
+      const labelEl = typeof button.querySelector === 'function' ? button.querySelector('.copy-label') : null;
+
+      // Save initial button text and attributes if not already cached
+      if (typeof button._defaultTitle !== 'string') {
+        button._defaultTitle = (typeof button.getAttribute === 'function' ? button.getAttribute('title') : null) ?? button.title ?? '';
+      }
+      if (typeof button._defaultAriaLabel !== 'string') {
+        button._defaultAriaLabel = (typeof button.getAttribute === 'function' ? button.getAttribute('aria-label') : null) ?? '';
+      }
+      if (typeof button._defaultLabel !== 'string') {
+        button._defaultLabel = (labelEl ? labelEl.textContent : button.textContent) || defaultText;
+      }
+
+      if (success) {
+        if (button.classList && typeof button.classList.add === 'function') {
+          button.classList.add('copied');
+          button.classList.remove('copy-error');
+        }
+        if (labelEl) {
+          labelEl.textContent = 'Copied!';
+        } else {
+          button.textContent = 'Copied!';
+        }
+        safeSetAttribute(button, 'aria-label', 'Copied to clipboard');
+        safeSetAttribute(button, 'title', 'Copied to clipboard');
+        button.title = 'Copied to clipboard';
+      } else {
+        if (button.classList && typeof button.classList.add === 'function') {
+          button.classList.add('copy-error');
+          button.classList.remove('copied');
+        }
+        if (labelEl) {
+          labelEl.textContent = 'Failed';
+        } else {
+          button.textContent = 'Failed';
+        }
+        safeSetAttribute(button, 'aria-label', 'Copy failed');
+        safeSetAttribute(button, 'title', 'Copy failed');
+        button.title = 'Copy failed';
+      }
+
+      if (typeof setTimeout === 'function') {
+        button._feedbackTimer = setTimeout(() => {
+          if (button.classList && typeof button.classList.remove === 'function') {
+            button.classList.remove('copied');
+            button.classList.remove('copy-error');
+          }
+          if (labelEl) {
+            labelEl.textContent = button._defaultLabel || defaultText;
+          } else {
+            button.textContent = button._defaultLabel || defaultText;
+          }
+          if (typeof button._defaultAriaLabel === 'string') {
+            if (button._defaultAriaLabel) {
+              safeSetAttribute(button, 'aria-label', button._defaultAriaLabel);
+            } else {
+              safeRemoveAttribute(button, 'aria-label');
+            }
+          } else {
+            const noun = defaultText.toLowerCase() === 'copy' ? 'text' : defaultText.toLowerCase();
+            safeSetAttribute(button, 'aria-label', `Copy ${noun} to clipboard`);
+          }
+          if (typeof button._defaultTitle === 'string') {
+            button.title = button._defaultTitle;
+            if (button._defaultTitle) {
+              safeSetAttribute(button, 'title', button._defaultTitle);
+            } else {
+              safeRemoveAttribute(button, 'title');
+            }
+          }
+          button._feedbackTimer = null;
+          button._defaultTitle = null;
+          button._defaultAriaLabel = null;
+          button._defaultLabel = null;
+        }, 2000);
+      }
+    },
+
+    init(elements) {
+      const el = elements || (typeof UIRenderer !== 'undefined' ? UIRenderer.getElements() : {});
+      const btnTitle = el.btnCopyTitle || (typeof document !== 'undefined' ? document.getElementById('btn-copy-title') : null);
+      const btnDesc = el.btnCopyDesc || (typeof document !== 'undefined' ? (document.getElementById('btn-copy-desc') || document.getElementById('btn-copy-description')) : null);
+
+      if (btnTitle && !btnTitle._hasCopyListener && typeof btnTitle.addEventListener === 'function') {
+        btnTitle._hasCopyListener = true;
+        btnTitle.addEventListener('click', async () => {
+          const titleInput = (el && el.inputTitle) || ((typeof UIRenderer !== 'undefined' && typeof UIRenderer.getElements === 'function') ? UIRenderer.getElements().inputTitle : null) || (typeof document !== 'undefined' ? document.getElementById('input-title') : null);
+          const val = titleInput ? titleInput.value : '';
+          const ok = await ClipboardManager.copy(val);
+          ClipboardManager.showFeedback(btnTitle, 'Copy', ok);
+        });
+      }
+
+      if (btnDesc && !btnDesc._hasCopyListener && typeof btnDesc.addEventListener === 'function') {
+        btnDesc._hasCopyListener = true;
+        btnDesc.addEventListener('click', async () => {
+          const descInput = (el && el.inputDesc) || ((typeof UIRenderer !== 'undefined' && typeof UIRenderer.getElements === 'function') ? UIRenderer.getElements().inputDesc : null) || (typeof document !== 'undefined' ? document.getElementById('input-description') : null);
+          const val = descInput ? descInput.value : '';
+          const ok = await ClipboardManager.copy(val);
+          ClipboardManager.showFeedback(btnDesc, 'Copy', ok);
+        });
+      }
     }
   };
 
@@ -386,10 +514,12 @@
         inputTitle: document.getElementById('input-title'),
         titleCounter: document.getElementById('title-counter'),
         titleProgress: document.getElementById('title-progress'),
+        btnCopyTitle: document.getElementById('btn-copy-title'),
         inputUrl: document.getElementById('input-url'),
         inputDesc: document.getElementById('input-description'),
         descCounter: document.getElementById('desc-counter'),
         descProgress: document.getElementById('desc-progress'),
+        btnCopyDesc: document.getElementById('btn-copy-desc') || document.getElementById('btn-copy-description'),
         btnDesktop: document.getElementById('btn-desktop'),
         btnMobile: document.getElementById('btn-mobile'),
         serpPreview: document.getElementById('serp-preview'),
@@ -614,8 +744,11 @@
 
       const el = UIRenderer.getElements();
 
-      // Initialize Theme Manager
+      // Initialize Theme Manager (permanent dark mode)
       ThemeManager.init();
+
+      // Initialize Clipboard Manager
+      ClipboardManager.init(el);
 
       // Bind input events for live synchronization
       if (el.inputTitle && typeof el.inputTitle.addEventListener === 'function') {
@@ -661,6 +794,7 @@
     TruncationEngine,
     URLParser,
     ThemeManager,
+    ClipboardManager,
     UIRenderer,
     AppController,
     LIMITS,

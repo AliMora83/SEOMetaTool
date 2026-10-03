@@ -105,8 +105,12 @@ export class MockElement {
     return this.textContent;
   }
 
-  set innerText(val) {
-    this.textContent = val;
+  get title() {
+    return this.getAttribute('title') || '';
+  }
+
+  set title(val) {
+    this.setAttribute('title', val);
   }
 
   setAttribute(name, val) {
@@ -128,6 +132,15 @@ export class MockElement {
   appendChild(child) {
     child.parentElement = this;
     this.childNodes.push(child);
+    return child;
+  }
+
+  removeChild(child) {
+    const idx = this.childNodes.indexOf(child);
+    if (idx !== -1) {
+      this.childNodes.splice(idx, 1);
+      child.parentElement = null;
+    }
     return child;
   }
 
@@ -217,7 +230,8 @@ export async function setupEnvironment() {
   const localStorage = createMockLocalStorage();
 
   // Create Element Registry
-  const body = new MockElement('body', '', '');
+  const body = new MockElement('body', '', 'dark');
+  body.classList.add('dark');
   const groupTitle = new MockElement('div', 'group-title', 'form-group form-group-title');
   const groupUrl = new MockElement('div', 'group-url', 'form-group');
   const groupDesc = new MockElement('div', 'group-description', 'form-group');
@@ -225,13 +239,18 @@ export async function setupEnvironment() {
   const inputTitle = new MockElement('input', 'input-title');
   const titleCounter = new MockElement('span', 'title-counter', 'counter-badge safe');
   const titleProgress = new MockElement('div', 'title-progress', 'progress-bar safe');
+  const btnCopyTitle = new MockElement('button', 'btn-copy-title', 'btn-copy');
+  btnCopyTitle.setAttribute('title', 'Copy Title');
+  btnCopyTitle.setAttribute('aria-label', 'Copy title to clipboard');
 
   const inputUrl = new MockElement('input', 'input-url');
   const inputDesc = new MockElement('textarea', 'input-description');
   const descCounter = new MockElement('span', 'desc-counter', 'counter-badge safe');
   const descProgress = new MockElement('div', 'desc-progress', 'progress-bar safe');
+  const btnCopyDesc = new MockElement('button', 'btn-copy-desc', 'btn-copy');
+  btnCopyDesc.setAttribute('title', 'Copy Description');
+  btnCopyDesc.setAttribute('aria-label', 'Copy description to clipboard');
 
-  const themeToggle = new MockElement('button', 'theme-toggle', 'theme-toggle-btn');
   const btnDesktop = new MockElement('button', 'btn-desktop', 'toggle-btn active');
   btnDesktop.setAttribute('data-mode', 'desktop');
   const btnMobile = new MockElement('button', 'btn-mobile', 'toggle-btn');
@@ -247,12 +266,14 @@ export async function setupEnvironment() {
 
   // Build tree
   groupTitle.appendChild(titleCounter);
+  groupTitle.appendChild(btnCopyTitle);
   groupTitle.appendChild(inputTitle);
   groupTitle.appendChild(titleProgress);
 
   groupUrl.appendChild(inputUrl);
 
   groupDesc.appendChild(descCounter);
+  groupDesc.appendChild(btnCopyDesc);
   groupDesc.appendChild(inputDesc);
   groupDesc.appendChild(descProgress);
 
@@ -263,7 +284,6 @@ export async function setupEnvironment() {
   serpPreview.appendChild(previewDesc);
   serpViewport.appendChild(serpPreview);
 
-  body.appendChild(themeToggle);
   body.appendChild(groupTitle);
   body.appendChild(groupUrl);
   body.appendChild(groupDesc);
@@ -275,11 +295,13 @@ export async function setupEnvironment() {
     ['input-title', inputTitle],
     ['title-counter', titleCounter],
     ['title-progress', titleProgress],
+    ['btn-copy-title', btnCopyTitle],
     ['input-url', inputUrl],
     ['input-description', inputDesc],
     ['desc-counter', descCounter],
     ['desc-progress', descProgress],
-    ['theme-toggle', themeToggle],
+    ['btn-copy-desc', btnCopyDesc],
+    ['btn-copy-description', btnCopyDesc],
     ['btn-desktop', btnDesktop],
     ['btn-mobile', btnMobile],
     ['serp-viewport', serpViewport],
@@ -509,14 +531,31 @@ export async function setupEnvironment() {
     }
   };
 
+  let clipboardText = '';
+  const mockNavigator = {
+    clipboard: {
+      writeText: async (text) => {
+        clipboardText = String(text);
+        return true;
+      },
+      readText: async () => clipboardText
+    }
+  };
+  mockWindow.navigator = mockNavigator;
+
   const sandbox = {
     document: mockDocument,
     window: mockWindow,
     globalThis: mockWindow,
+    navigator: mockNavigator,
     localStorage,
+    setTimeout,
+    clearTimeout,
     module: { exports: {} },
     URL: globalThis.URL
   };
+  mockWindow.setTimeout = setTimeout;
+  mockWindow.clearTimeout = clearTimeout;
   // Execute app.js
   vm.runInNewContext(appContent, sandbox);
 
@@ -528,11 +567,14 @@ export async function setupEnvironment() {
     app: sandbox.module.exports,
     document: mockDocument,
     localStorage,
+    clipboard: mockNavigator.clipboard,
     html: htmlContent,
     css: cssContent,
     elements: {
       body,
-      themeToggle,
+      themeToggle: null,
+      btnCopyTitle,
+      btnCopyDesc,
       groupTitle,
       groupUrl,
       groupDesc,
