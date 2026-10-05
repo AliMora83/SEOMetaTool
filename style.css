@@ -770,3 +770,21 @@ body.dark #preview-description {
   color: var(--text-secondary);
   padding: 8px 0;
 }
+
+/* --- AdSense Containers --- */
+.ad-container {
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.03); /* Subtle placeholder background */
+  text-align: center;
+}
+
+.sidebar-ad {
+  margin-top: 32px;
+  min-height: 250px; /* Prevent layout shift */
+}
+
+.preview-ad {
+  margin-top: 40px;
+  min-height: 90px;  /* Typical horizontal banner height */
+}
