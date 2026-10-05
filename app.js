@@ -526,7 +526,13 @@
         previewTitle: document.getElementById('preview-title'),
         previewDesc: document.getElementById('preview-description'),
         previewSiteName: document.getElementById('preview-site-name'),
-        previewBreadcrumb: document.getElementById('preview-breadcrumb')
+        previewBreadcrumb: document.getElementById('preview-breadcrumb'),
+        inputFavicon: document.getElementById('input-favicon'),
+        inputDate: document.getElementById('input-date'),
+        inputRating: document.getElementById('input-rating'),
+        previewFavicon: document.getElementById('preview-favicon'),
+        previewRating: document.getElementById('preview-rating'),
+        btnExportJson: document.getElementById('btn-export-json')
       };
     },
 
@@ -618,12 +624,21 @@
       }
     },
 
+    getDatePrefix() {
+      const d = new Date();
+      const month = d.toLocaleString('en-US', { month: 'short' });
+      return `${month} ${d.getDate()}, ${d.getFullYear()} — `;
+    },
+
     renderDescription(el) {
       if (!el.inputDesc) return;
       const rawValue = el.inputDesc.value || '';
       const charCount = rawValue.length;
+      
+      const datePrefix = (el.inputDate && el.inputDate.checked) ? this.getDatePrefix() : '';
+      const fullText = datePrefix + rawValue;
 
-      if (!rawValue || rawValue.trim() === '') {
+      if (!rawValue && !datePrefix) {
         if (el.previewDesc) el.previewDesc.textContent = 'Meta description preview will appear here...';
         if (el.descCounter) {
           el.descCounter.textContent = `0px / ${LIMITS.description}px (0 chars)`;
@@ -644,9 +659,9 @@
         return;
       }
 
-      const pixelWidth = PixelMeasurer.measure(rawValue, FONTS.description);
+      const pixelWidth = PixelMeasurer.measure(fullText, FONTS.description);
       if (el.previewDesc) {
-        el.previewDesc.textContent = rawValue;
+        el.previewDesc.textContent = fullText;
       }
 
       if (el.descCounter) {
@@ -701,6 +716,25 @@
 
       if (el.previewSiteName) el.previewSiteName.textContent = parsed.domain;
       if (el.previewBreadcrumb) el.previewBreadcrumb.textContent = parsed.breadcrumb;
+    },
+
+    renderFavicon(el) {
+      if (!el.inputFavicon || !el.previewFavicon) return;
+      const url = el.inputFavicon.value.trim();
+      if (url) {
+        el.previewFavicon.innerHTML = `<img src="${url}" alt="Favicon" style="width: 16px; height: 16px; border-radius: 50%; object-fit: contain;">`;
+      } else {
+        el.previewFavicon.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5f6368" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>`;
+      }
+    },
+
+    renderRating(el) {
+      if (!el.inputRating || !el.previewRating) return;
+      if (el.inputRating.checked) {
+        el.previewRating.style.display = 'flex';
+      } else {
+        el.previewRating.style.display = 'none';
+      }
     },
 
     setMode(mode, el) {
@@ -769,10 +803,50 @@
         el.btnMobile.addEventListener('click', () => UIRenderer.setMode('mobile', el));
       }
 
+      // Bind advanced features
+      if (el.inputFavicon && typeof el.inputFavicon.addEventListener === 'function') {
+        el.inputFavicon.addEventListener('input', () => UIRenderer.renderFavicon(el));
+      }
+      if (el.inputDate && typeof el.inputDate.addEventListener === 'function') {
+        el.inputDate.addEventListener('change', () => UIRenderer.renderDescription(el));
+      }
+      if (el.inputRating && typeof el.inputRating.addEventListener === 'function') {
+        el.inputRating.addEventListener('change', () => UIRenderer.renderRating(el));
+      }
+
+      // Export JSON
+      if (el.btnExportJson && typeof el.btnExportJson.addEventListener === 'function') {
+        el.btnExportJson.addEventListener('click', () => {
+          const data = {
+            title: el.inputTitle ? el.inputTitle.value : '',
+            url: el.inputUrl ? el.inputUrl.value : '',
+            description: el.inputDesc ? el.inputDesc.value : '',
+            favicon: el.inputFavicon ? el.inputFavicon.value : '',
+            showDate: el.inputDate ? el.inputDate.checked : false,
+            showRating: el.inputRating ? el.inputRating.checked : false
+          };
+          const json = JSON.stringify(data, null, 2);
+          const blob = new Blob([json], { type: 'application/json' });
+          const url = typeof URL !== 'undefined' ? URL.createObjectURL(blob) : '';
+          if (url && typeof document !== 'undefined') {
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'seo-meta-config.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+          }
+          ClipboardManager.showFeedback(el.btnExportJson, 'Export JSON', true);
+        });
+      }
+
       // Initial render pass
       UIRenderer.renderTitle(el);
       UIRenderer.renderDescription(el);
       UIRenderer.renderUrl(el);
+      UIRenderer.renderFavicon(el);
+      UIRenderer.renderRating(el);
       UIRenderer.setMode('desktop', el);
     }
   };

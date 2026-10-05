@@ -93,7 +93,7 @@ body {
   min-height: 100vh;
   line-height: 1.5;
   transition: background 0.3s ease, color 0.3s ease;
-  padding: 24px 16px;
+  padding: 24px 16px 60px 16px;
   position: relative;
   overflow-x: hidden;
   isolation: isolate;
@@ -761,6 +761,10 @@ body.dark #preview-description {
 
 /* Footer */
 .app-footer {
+  position: absolute;
+  bottom: 16px;
+  left: 0;
+  right: 0;
   text-align: center;
   font-size: 12px;
   color: var(--text-secondary);

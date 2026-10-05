@@ -30,7 +30,10 @@
     <main class="app-layout">
       <!-- Configuration Controls Panel (Glassmorphism) -->
       <section class="controls-panel" aria-label="Snippet Configuration">
-        <h2 class="panel-heading">Snippet Settings</h2>
+        <div class="panel-header-row" style="display: flex; justify-content: space-between; align-items: center;">
+          <h2 class="panel-heading" style="margin: 0;">Snippet Settings</h2>
+          <button type="button" class="btn-copy" id="btn-export-json" title="Export to JSON" style="padding: 6px 12px;">Export JSON</button>
+        </div>
 
         <form id="snippet-form" class="snippet-form" onsubmit="return false;">
           <!-- Title Input Group with Parent Validation -->
@@ -91,6 +94,34 @@
             </div>
             <span class="field-hint">Desktop snippets wrap to 2 lines (~960px).</span>
           </div>
+          
+          <details class="advanced-settings-group" style="margin-top: 8px;">
+            <summary style="cursor: pointer; font-weight: 600; color: var(--text-main); margin-bottom: 12px; font-size: 14px; user-select: none;">Advanced Features</summary>
+            
+            <div class="form-group" style="margin-bottom: 16px;">
+              <div class="label-row">
+                <label for="input-favicon">Custom Favicon URL</label>
+              </div>
+              <div class="input-wrapper">
+                <input type="text" id="input-favicon" placeholder="https://example.com/favicon.ico" autocomplete="off">
+              </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 16px;">
+              <div class="label-row" style="justify-content: flex-start; gap: 12px;">
+                <input type="checkbox" id="input-date" style="width: 16px; height: 16px; margin: 0; cursor: pointer;">
+                <label for="input-date" style="cursor: pointer;">Show Current Date in Snippet</label>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <div class="label-row" style="justify-content: flex-start; gap: 12px;">
+                <input type="checkbox" id="input-rating" style="width: 16px; height: 16px; margin: 0; cursor: pointer;">
+                <label for="input-rating" style="cursor: pointer;">Enable Rich Snippets (Star Rating)</label>
+              </div>
+            </div>
+          </details>
+
         </form>
       </section>
 
@@ -136,6 +167,9 @@
             <h3 class="serp-title">
               <a href="#" id="preview-title" tabindex="-1">Page Title Preview</a>
             </h3>
+            <div class="serp-rich-snippet" id="preview-rating" style="display: none; align-items: center; gap: 4px; font-size: 14px; color: #70757a; margin-bottom: 2px;">
+              <span style="color: #fbbc04; font-size: 12px;">★★★★★</span> <span style="font-family: Arial, sans-serif;">Rating: 4.8 · 1,234 reviews</span>
+            </div>
             <p class="serp-snippet" id="preview-description">Meta description preview will appear here...</p>
           </article>
         </div>
@@ -143,7 +177,7 @@
     </main>
 
     <footer class="app-footer">
-      <p>SEO Meta Previewer • Vanilla HTML5, Modern CSS3 &amp; ES6+ JavaScript</p>
+      <p>SEO Meta Previewer - by Ali Mora</p>
     </footer>
   </div>
 
